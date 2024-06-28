@@ -3,10 +3,9 @@ from typing import Union
 import time
 import numpy as np
 import datasets
-
+import llmdet
 from random import random
 from time import sleep
-from multiprocessing.pool import Pool
 from pydantic import BaseModel
 from fastapi import FastAPI, Request
 
@@ -33,29 +32,14 @@ app = FastAPI(lifespan=lifespan)
 class Scanned(BaseModel):
     raw_text: str
 
-def task(identifier, value):
-    # report a message
-    print("inside task: " + str(time.time()))
-    print(f'Task {identifier} executing with {value}', flush=True)
-    # block for a moment
-    sleep(value)
-    # return the generated value
-    return (identifier, value)
-
 @app.post("/")
-async def read_root(scanned: Scanned):
+async def read_root(scanned: Scanned, request: Request):
     app.state
     start_time = time.perf_counter()
-    print("begin: " + str(time.time()))
-    with Pool() as pool:
-        # prepare arguments
-        print("step 0: " + str(time.time()))
-        items = [(i, random()) for i in range(10)]
-        # execute tasks and process results in order
-        print("step 1: " + str(time.time()))
-        for result in pool.starmap(task, items):
-            print("step 2: " + str(time.time()))
-            print(f'Got result: {result}', flush=True)
+
+    raw_text = str(scanned.raw_text)
+    results =  llmdet.detect(raw_text, request.state.models)
+
     end_time = time.perf_counter()
     print(f"total time: {end_time - start_time:0.4f}")
     return {"Hello": "World"}
