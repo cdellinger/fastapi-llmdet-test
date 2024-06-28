@@ -98,6 +98,21 @@ def perplexity(text_set_token_ids, n_grams_probability, vocab_size):
 
     return test_perplexity
 
+def get_perplexity_results_original(model_information, test_text):
+    perplexity_result = []
+    text_token_ids = {}
+    for model in model_information:
+        result = get_token_ids(model["model_name"], test_text)
+        text_token_ids[result[0]] = result[1]
+
+    for model in model_information:
+        if model["model_probability"] in globals():
+            results = perplexity(text_token_ids[model["model_name"]], globals()[model["model_probability"]], model["vocab_size"])
+            perplexity_result.append(results)
+        else:
+            raise ValueError("The {} does not exist, please load n-grams probability!".format(model["model_probability"]))
+    return perplexity_result
+
 def get_perplexity_results_starmap(model_information, test_text):
     perplexity_result = []
     params = []
@@ -142,7 +157,6 @@ def get_token_ids(model_name, test_text):
     return (model_name, text_token_ids)
 
 def process_model(model, test_text):
-    print("inside process_model")
     if any([(model_type in model["model_name"]) for model_type in ["unilm"]]):
         tokenizer = UniLMTokenizer.from_pretrained(model["model_name"])
     elif any([(model_type in model["model_name"]) for model_type in ["llama", "vicuna"]]):
@@ -169,7 +183,7 @@ def process_model(model, test_text):
     else:
         raise ValueError("The {} does not exist, please load n-grams probability!".format(model["model_probability"]))
 
-def detect(text, models):
+def detect(text, models, version):
     """
     The `detect()` is used to determine whether the given text comes from GPT-2, LLaMA, BART, OPT, UniLM, T5, Bloom, GPT-neo, or Human-write.
     """
@@ -211,9 +225,14 @@ def detect(text, models):
     # labels_to_number = {"Human_write": 0, "GPT-2": 1, "OPT": 2, "UniLM": 3, "llama": 4, "bart": 5, "t5": 6, "bloom": 7,
     #                     "neo": 8}
     start_time = time.perf_counter()
-    # Calculate the proxy perplexity
+
+
     perplexity_result = []
-    perplexity_result = get_perplexity_results_starmap(model_information, test_text)
+    if version == "old":
+        perplexity_result = get_perplexity_results_starmap(model_information, test_text)
+    else:
+        perplexity_result = get_perplexity_results_original(model_information, test_text)
+
     end_time = time.perf_counter()
     print(f"total time for perplexity: {end_time - start_time:0.4f}")
 
