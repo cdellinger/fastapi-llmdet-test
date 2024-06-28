@@ -35,11 +35,20 @@ class Scanned(BaseModel):
 @app.post("/")
 async def read_root(scanned: Scanned, request: Request):
     app.state
-    start_time = time.perf_counter()
 
     raw_text = str(scanned.raw_text)
-    results =  llmdet.detect(raw_text, request.state.models)
-
+    
+    start_time = time.perf_counter()
+    old_results =  llmdet.detect(raw_text, request.state.models, "old")
     end_time = time.perf_counter()
-    print(f"total time: {end_time - start_time:0.4f}")
-    return {"Hello": "World"}
+    old_time = end_time - start_time
+    print(f"total time old detect: {old_time:0.4f}")
+
+    start_time = time.perf_counter()
+    new_results =  llmdet.detect(raw_text, request.state.models, "new")
+    end_time = time.perf_counter()
+    new_time = end_time - start_time
+    print(f"total time new detect: {new_time:0.4f}")
+
+
+    return {"old_time": old_time, "old_results": old_results, "new_time": new_time, "new_results": new_results}
