@@ -32,11 +32,10 @@ pip install datasets
 pip install git+https://github.com/Liadrinz/transformers-unilm
 pip install git+https://github.com/huggingface/transformers
 
-pip install datasets
 
 git clone https://github.com/cdellinger/fastapi-llmdet-test.git
 
-cd LLMDet
+cd fastapi-llmdet-test/LLMDet
 python setup.py install
 #pip install -r requirements.txt
 cd ..
@@ -44,7 +43,7 @@ cd ..
 
 Start the server
 ```sh
-fastapi run main.py
+fastapi run test.py
 ```
 
 ## Test
